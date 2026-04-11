@@ -1,15 +1,15 @@
 "use client";
 import { useState, useMemo } from 'react';
 import { parsePortfolioCSV } from '@/lib/parser';
-import { getSector } from '@/lib/sectors'; 
-import { 
-  Card, Title, AreaChart, DonutChart, BarList, Text, Flex, Grid, 
-  Metric, Badge, TextInput, Callout, Divider, Icon, 
-  Table, TableHead, TableRow, TableHeaderCell, TableBody, TableCell 
+import { getSector } from '@/lib/sectors';
+import {
+  Card, Title, AreaChart, DonutChart, BarList, Text, Flex, Grid,
+  Metric, Badge, TextInput, Callout, Divider, Icon,
+  Table, TableHead, TableRow, TableHeaderCell, TableBody, TableCell
 } from "@tremor/react";
-import { 
-  MagnifyingGlassIcon, 
-  ShieldCheckIcon, 
+import {
+  MagnifyingGlassIcon,
+  ShieldCheckIcon,
   ExclamationTriangleIcon,
   DocumentArrowDownIcon,
   ChartBarIcon,
@@ -23,6 +23,7 @@ import {
 export default function Dashboard() {
   const [portfolio, setPortfolio] = useState<any[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
+  const [isSyncing, setIsSyncing] = useState(false);
 
   const valueFormatter = (number: number) => `${number.toLocaleString()} Units`;
   const currencyFormatter = (number: number) => `Rs. ${number.toLocaleString()}`;
@@ -44,7 +45,7 @@ export default function Dashboard() {
     const sorted = [...portfolio].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
     let runningTotal = 0;
     return sorted.map(item => {
-      runningTotal += item.units; 
+      runningTotal += item.units;
       return {
         date: item.date,
         "Portfolio Volume": runningTotal,
@@ -56,7 +57,7 @@ export default function Dashboard() {
   const yearlyStats = useMemo(() => {
     const stats: Record<string, { added: number, endBalance: number }> = {};
     const sorted = [...portfolio].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-    
+
     let runningBalance = 0;
     sorted.forEach(item => {
       const year = item.date.split('-')[0];
@@ -129,11 +130,42 @@ export default function Dashboard() {
   }, [scripData, auditMetrics]);
 
   const filteredPortfolio = useMemo(() => {
-    return portfolio.filter(item => 
+    return portfolio.filter(item =>
       item.symbol.toLowerCase().includes(searchTerm.toLowerCase())
     );
   }, [portfolio, searchTerm]);
- 
+
+  const syncMarketPrices = async () => {
+    if (portfolio.length === 0) return alert("Upload your CSV first!");
+
+    setIsSyncing(true);
+    try {
+      // Using a public NEPSE data aggregator API
+      const response = await fetch('https://nepse-alpha.vercel.app/api/market-summary');
+      const marketData = await response.json();
+
+      // Update portfolio with Live Prices (LTP)
+      const updated = portfolio.map(item => {
+        // Find matching stock in live data
+        const liveStock = marketData.find((s: any) => s.symbol === item.symbol);
+        const currentPrice = liveStock?.ltp || 100; // Default to 100 if not found
+
+        return {
+          ...item,
+          currentPrice: currentPrice,
+          totalValue: currentPrice * item.units,
+          profit: (currentPrice - 100) * item.units // Assumes IPO cost of 100
+        };
+      });
+
+      setPortfolio(updated);
+    } catch (error) {
+      console.error("Market Sync Error:", error);
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
 
   return (
     <main className="min-h-screen bg-slate-50 text-slate-900 pb-20 font-sans selection:bg-indigo-100">
@@ -150,12 +182,21 @@ export default function Dashboard() {
             </p>
           </div>
           <div className="bg-slate-800 p-6 rounded-3xl border border-slate-700 flex items-center gap-6 shadow-inner">
-             <input 
-              type="file" 
-              accept=".csv" 
+            <input
+              type="file"
+              accept=".csv"
               onChange={handleUpload}
               className="text-xs text-slate-300 file:mr-4 file:py-2 file:px-8 file:rounded-full file:border-0 file:bg-indigo-600 file:text-white cursor-pointer font-bold shadow-lg"
             />
+            <button
+              onClick={syncMarketPrices}
+              disabled={isSyncing || portfolio.length === 0}
+              className={`flex items-center gap-2 px-6 py-2 rounded-full font-black text-xs uppercase tracking-widest transition-all ${isSyncing ? 'bg-slate-700 animate-pulse' : 'bg-emerald-600 hover:bg-emerald-500 shadow-lg active:scale-95'
+                } text-white`}
+            >
+              <ArrowTrendingUpIcon className="w-4 h-4" />
+              {isSyncing ? "Syncing Market..." : "Sync Live Analysis"}
+            </button>
           </div>
         </div>
       </div>
@@ -228,23 +269,23 @@ export default function Dashboard() {
               <Card className="lg:col-span-2 bg-white ring-1 ring-slate-200 p-8">
                 <Title className="text-slate-900 font-black uppercase tracking-tight mb-8">Structural Risk Audit</Title>
                 <Grid numItemsMd={2} className="gap-16">
-                   <div>
-                      <Text className="text-[10px] font-black uppercase text-slate-400 mb-6 tracking-widest">Asset Concentration</Text>
-                      <DonutChart className="h-44 w-44 mx-auto" data={scripData.slice(0, 10)} category="value" index="name" colors={["indigo", "cyan", "sky", "violet", "slate"]} />
-                      <BarList data={scripData.slice(0, 5)} color="indigo" className="mt-8" />
-                   </div>
-                   <div className="lg:border-l border-slate-100 lg:pl-10">
-                      <Text className="text-[10px] font-black uppercase text-slate-400 mb-6 tracking-widest">Industry Exposure</Text>
-                      <DonutChart className="h-44 w-44 mx-auto" data={sectorData} category="value" index="name" colors={["emerald", "teal", "cyan", "sky", "blue"]} />
-                      <BarList 
-                        data={sectorData.map(s => ({ 
-                          name: s.name, 
-                          value: s.value, 
-                          label: `${Math.round((s.value / auditMetrics!.totalUnits) * 100)}%` 
-                        }))} 
-                        color="emerald" className="mt-8" 
-                      />
-                   </div>
+                  <div>
+                    <Text className="text-[10px] font-black uppercase text-slate-400 mb-6 tracking-widest">Asset Concentration</Text>
+                    <DonutChart className="h-44 w-44 mx-auto" data={scripData.slice(0, 10)} category="value" index="name" colors={["indigo", "cyan", "sky", "violet", "slate"]} />
+                    <BarList data={scripData.slice(0, 5)} color="indigo" className="mt-8" />
+                  </div>
+                  <div className="lg:border-l border-slate-100 lg:pl-10">
+                    <Text className="text-[10px] font-black uppercase text-slate-400 mb-6 tracking-widest">Industry Exposure</Text>
+                    <DonutChart className="h-44 w-44 mx-auto" data={sectorData} category="value" index="name" colors={["emerald", "teal", "cyan", "sky", "blue"]} />
+                    <BarList
+                      data={sectorData.map(s => ({
+                        name: s.name,
+                        value: s.value,
+                        label: `${Math.round((s.value / auditMetrics!.totalUnits) * 100)}%`
+                      }))}
+                      color="emerald" className="mt-8"
+                    />
+                  </div>
                 </Grid>
               </Card>
 
@@ -256,17 +297,17 @@ export default function Dashboard() {
                   <Text className="text-[10px] text-slate-400 mt-1 italic">Highest sector weight detected.</Text>
                 </Card>
                 <Card className="bg-slate-900 text-white border-none shadow-2xl rounded-3xl p-8 overflow-hidden relative">
-                   <ShieldCheckIcon className="absolute top-[-20px] right-[-20px] w-32 h-32 opacity-5" />
-                   <Title className="text-indigo-400 font-black uppercase text-xs tracking-[0.2em] mb-4">Auditor Note</Title>
-                   <Text className="text-slate-300 text-sm leading-relaxed mb-6">
-                     Investment span of <span className="text-white font-bold">{auditMetrics?.activeYears} years</span> verified. 
-                     Concentration risk in <span className="text-white font-bold">{scripData[0]?.name}</span> should be monitored.
-                   </Text>
-                   <Divider className="bg-slate-800" />
-                   <div className="flex justify-between items-center">
-                      <Text className="text-[10px] font-mono text-indigo-400 uppercase tracking-tighter">ID: BCA_NP_AUDIT_X</Text>
-                      <Badge color="indigo" size="xs">SECURE</Badge>
-                   </div>
+                  <ShieldCheckIcon className="absolute top-[-20px] right-[-20px] w-32 h-32 opacity-5" />
+                  <Title className="text-indigo-400 font-black uppercase text-xs tracking-[0.2em] mb-4">Auditor Note</Title>
+                  <Text className="text-slate-300 text-sm leading-relaxed mb-6">
+                    Investment span of <span className="text-white font-bold">{auditMetrics?.activeYears} years</span> verified.
+                    Concentration risk in <span className="text-white font-bold">{scripData[0]?.name}</span> should be monitored.
+                  </Text>
+                  <Divider className="bg-slate-800" />
+                  <div className="flex justify-between items-center">
+                    <Text className="text-[10px] font-mono text-indigo-400 uppercase tracking-tighter">ID: BCA_NP_AUDIT_X</Text>
+                    <Badge color="indigo" size="xs">SECURE</Badge>
+                  </div>
                 </Card>
               </div>
             </Grid>
@@ -297,16 +338,23 @@ export default function Dashboard() {
                 </TableHead>
                 <TableBody>
                   {filteredPortfolio.map((item, idx) => (
-                    <TableRow key={idx} className="hover:bg-indigo-50/40 transition-all group">
+                    <TableRow key={idx}>
                       <TableCell className="px-10 py-6">
-                        <span className="font-black text-indigo-700 text-lg group-hover:text-indigo-900">{item.symbol}</span>
+                        <span className="font-black text-indigo-700 text-lg">{item.symbol}</span>
                       </TableCell>
-                      <TableCell className="px-10 py-6 font-mono text-xs text-slate-500 italic">{item.date}</TableCell>
+                      {/* NEW: Live Price Column */}
                       <TableCell className="px-10 py-6">
-                        <Badge color="slate" size="xs" className="font-black px-3 py-1 uppercase">{getSector(item.symbol)}</Badge>
+                        <Text className="text-xs font-bold text-slate-400">LTP</Text>
+                        <Text className="font-mono font-bold">Rs. {item.currentPrice || "---"}</Text>
                       </TableCell>
-                      <TableCell className="px-10 py-6 text-right font-mono font-bold text-slate-900 text-lg">
-                        {item.units.toLocaleString()}
+                      {/* NEW: Profit/Loss Column with Color Coding */}
+                      <TableCell className="px-10 py-6">
+                        <Badge color={item.profit >= 0 ? "emerald" : "rose"} size="xs">
+                          {item.profit ? `Rs. ${item.profit.toLocaleString()}` : "Pending Sync"}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="px-10 py-6 text-right font-mono font-bold text-lg">
+                        {item.units}
                       </TableCell>
                     </TableRow>
                   ))}
