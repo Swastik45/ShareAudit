@@ -136,18 +136,19 @@ export default function Dashboard() {
   }, [portfolio, searchTerm]);
 
 
-
 const syncMarketPrices = async () => {
   if (portfolio.length === 0) return alert("Upload your CSV first!");
   
   setIsSyncing(true);
+  
+  // 1. Declare the variable HERE (outside the try block)
+  let marketArray: any[] = []; 
+
   try {
     const response = await fetch('/api/market');
     const result = await response.json();
 
-    // --- SYSTEMS AUDITOR: DATA DISCOVERY ---
-    // This finds the array whether it's in .data, .prices, .table, or result itself
-    let marketArray: any[] = [];
+    // 2. Assign the data inside the try block
     if (Array.isArray(result)) {
       marketArray = result;
     } else if (result.data && Array.isArray(result.data)) {
@@ -155,20 +156,21 @@ const syncMarketPrices = async () => {
     } else if (result.prices && Array.isArray(result.prices)) {
       marketArray = result.prices;
     } else {
-      // Last resort: search all keys for an array
       const possibleKey = Object.keys(result).find(k => Array.isArray(result[k]));
       if (possibleKey) marketArray = result[possibleKey];
     }
 
-    if (marketArray.length === 0) throw new Error("Could not locate stock list in API response.");
+    if (marketArray.length === 0) {
+        throw new Error("Data structure mismatch or empty response");
+    }
 
+    // 3. Now this block can see marketArray without error
     const updated = portfolio.map(item => {
       const liveStock = marketArray.find((s: any) => 
-        (s.symbol || s.scrip || s.s || s.t || "").toUpperCase() === item.symbol.toUpperCase()
+        (s.symbol || s.scrip || s.s || "").toUpperCase() === item.symbol.toUpperCase()
       );
 
-      // Map ltp, last_price, or c (close)
-      const currentPrice = Number(liveStock?.ltp || liveStock?.last_price || liveStock?.c || 100);
+      const currentPrice = Number(liveStock?.ltp || liveStock?.last_price || 100);
       
       return {
         ...item,
@@ -179,10 +181,11 @@ const syncMarketPrices = async () => {
     });
 
     setPortfolio(updated);
-    alert(`Audit Successful: Verified ${updated.length} assets.`);
+    alert("Audit Successful.");
+
   } catch (error) {
-    console.error("Sync Failure:", error);
-    alert("The NEPSE data source is currently unresponsive. This often happens on weekends. Please try again during market hours.");
+    console.error("Internal Sync Error:", error);
+    alert("Market data source is currently unresponsive (typical for weekends).");
   } finally {
     setIsSyncing(false);
   }
