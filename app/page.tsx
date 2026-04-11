@@ -24,6 +24,7 @@ export default function Dashboard() {
   const [portfolio, setPortfolio] = useState<any[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [isSyncing, setIsSyncing] = useState(false);
+  const [lastSynced, setLastSynced] = useState<Date | null>(null);
 
   const valueFormatter = (number: number) => `${number.toLocaleString()} Units`;
   const currencyFormatter = (number: number) => `Rs. ${number.toLocaleString()}`;
@@ -136,60 +137,61 @@ export default function Dashboard() {
   }, [portfolio, searchTerm]);
 
 
-const syncMarketPrices = async () => {
-  if (portfolio.length === 0) return alert("Upload your CSV first!");
-  
-  setIsSyncing(true);
-  
-  // 1. Declare the variable HERE (outside the try block)
-  let marketArray: any[] = []; 
+  const syncMarketPrices = async () => {
+    if (portfolio.length === 0) return alert("Upload your CSV first!");
 
-  try {
-    const response = await fetch('/api/market');
-    const result = await response.json();
+    setIsSyncing(true);
 
-    // 2. Assign the data inside the try block
-    if (Array.isArray(result)) {
-      marketArray = result;
-    } else if (result.data && Array.isArray(result.data)) {
-      marketArray = result.data;
-    } else if (result.prices && Array.isArray(result.prices)) {
-      marketArray = result.prices;
-    } else {
-      const possibleKey = Object.keys(result).find(k => Array.isArray(result[k]));
-      if (possibleKey) marketArray = result[possibleKey];
-    }
+    // 1. Declare the variable HERE (outside the try block)
+    let marketArray: any[] = [];
 
-    if (marketArray.length === 0) {
+    try {
+      const response = await fetch('/api/market');
+      const result = await response.json();
+
+      // 2. Assign the data inside the try block
+      if (Array.isArray(result)) {
+        marketArray = result;
+      } else if (result.data && Array.isArray(result.data)) {
+        marketArray = result.data;
+      } else if (result.prices && Array.isArray(result.prices)) {
+        marketArray = result.prices;
+      } else {
+        const possibleKey = Object.keys(result).find(k => Array.isArray(result[k]));
+        if (possibleKey) marketArray = result[possibleKey];
+      }
+
+      if (marketArray.length === 0) {
         throw new Error("Data structure mismatch or empty response");
+      }
+
+      // 3. Now this block can see marketArray without error
+      const updated = portfolio.map(item => {
+        const liveStock = marketArray.find((s: any) =>
+          (s.symbol || s.scrip || s.s || "").toUpperCase() === item.symbol.toUpperCase()
+        );
+
+        const currentPrice = Number(liveStock?.ltp || liveStock?.last_price || 100);
+
+        return {
+          ...item,
+          currentPrice: currentPrice,
+          totalValue: currentPrice * item.units,
+          profit: (currentPrice - 100) * item.units
+        };
+      });
+
+      setPortfolio(updated);
+      setLastSynced(new Date());
+      alert("Audit Successful.");
+
+    } catch (error) {
+      console.error("Internal Sync Error:", error);
+      alert("Market data source is currently unresponsive (typical for weekends).");
+    } finally {
+      setIsSyncing(false);
     }
-
-    // 3. Now this block can see marketArray without error
-    const updated = portfolio.map(item => {
-      const liveStock = marketArray.find((s: any) => 
-        (s.symbol || s.scrip || s.s || "").toUpperCase() === item.symbol.toUpperCase()
-      );
-
-      const currentPrice = Number(liveStock?.ltp || liveStock?.last_price || 100);
-      
-      return {
-        ...item,
-        currentPrice: currentPrice,
-        totalValue: currentPrice * item.units,
-        profit: (currentPrice - 100) * item.units 
-      };
-    });
-
-    setPortfolio(updated);
-    alert("Audit Successful.");
-
-  } catch (error) {
-    console.error("Internal Sync Error:", error);
-    alert("Market data source is currently unresponsive (typical for weekends).");
-  } finally {
-    setIsSyncing(false);
-  }
-};
+  };
 
 
   return (
@@ -219,6 +221,14 @@ const syncMarketPrices = async () => {
               className={`flex items-center gap-2 px-6 py-2 rounded-full font-black text-xs uppercase tracking-widest transition-all ${isSyncing ? 'bg-slate-700 animate-pulse' : 'bg-emerald-600 hover:bg-emerald-500 shadow-lg active:scale-95'
                 } text-white`}
             >
+              {lastSynced && (
+                <div className="flex items-center gap-2 mt-2 px-3 py-1 bg-slate-800/50 border border-slate-700 rounded-lg w-fit">
+                  <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-tighter">
+                    Last Audit: {lastSynced.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  </span>
+                </div>
+              )}
               <ArrowTrendingUpIcon className="w-4 h-4" />
               {isSyncing ? "Syncing Market..." : "Sync Live Analysis"}
             </button>
