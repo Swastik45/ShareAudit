@@ -135,36 +135,45 @@ export default function Dashboard() {
     );
   }, [portfolio, searchTerm]);
 
-  const syncMarketPrices = async () => {
-    if (portfolio.length === 0) return alert("Upload your CSV first!");
 
-    setIsSyncing(true);
-    try {
-      // Using a public NEPSE data aggregator API
-      const response = await fetch('https://nepse-alpha.vercel.app/api/market-summary');
-      const marketData = await response.json();
 
-      // Update portfolio with Live Prices (LTP)
-      const updated = portfolio.map(item => {
-        // Find matching stock in live data
-        const liveStock = marketData.find((s: any) => s.symbol === item.symbol);
-        const currentPrice = liveStock?.ltp || 100; // Default to 100 if not found
+const syncMarketPrices = async () => {
+  if (portfolio.length === 0) return alert("Please upload your CSV first.");
+  
+  setIsSyncing(true);
+  try {
+    // Call your INTERNAL proxy route
+    const response = await fetch('/api/market');
+    const result = await response.json();
 
-        return {
-          ...item,
-          currentPrice: currentPrice,
-          totalValue: currentPrice * item.units,
-          profit: (currentPrice - 100) * item.units // Assumes IPO cost of 100
-        };
-      });
+    // Mapping logic (adjusting for common NEPSE API structures)
+    const marketArray = result.data || result; 
 
-      setPortfolio(updated);
-    } catch (error) {
-      console.error("Market Sync Error:", error);
-    } finally {
-      setIsSyncing(false);
-    }
-  };
+    const updated = portfolio.map(item => {
+      // Find matching scrip (handling potential name/symbol mismatches)
+      const liveStock = marketArray.find((s: any) => 
+        s.symbol?.toUpperCase() === item.symbol?.toUpperCase() || 
+        s.scrip?.toUpperCase() === item.symbol?.toUpperCase()
+      );
+
+      const currentPrice = liveStock?.ltp || liveStock?.last_traded_price || 100;
+      
+      return {
+        ...item,
+        currentPrice: Number(currentPrice),
+        totalValue: Number(currentPrice) * item.units,
+        profit: (Number(currentPrice) - 100) * item.units
+      };
+    });
+
+    setPortfolio(updated);
+  } catch (error) {
+    console.error("Internal Sync Error:", error);
+    alert("Market data is currently unavailable. Try again in a moment.");
+  } finally {
+    setIsSyncing(false);
+  }
+};
 
 
   return (
