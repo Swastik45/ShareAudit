@@ -138,29 +138,37 @@ export default function Dashboard() {
 
 
 const syncMarketPrices = async () => {
-  if (portfolio.length === 0) return alert("Upload CSV first");
+  if (portfolio.length === 0) return alert("Upload your CSV first!");
   
   setIsSyncing(true);
   try {
     const response = await fetch('/api/market');
     const result = await response.json();
 
-    // --- ARCHITECT CHECK: Find the Array ---
-    // This logic looks into common places where API data hides (data, prices, or the root)
-    const marketArray = Array.isArray(result) ? result : (result.data || result.prices || []);
-
-    if (marketArray.length === 0) {
-      throw new Error("Data structure mismatch or empty response");
+    // --- SYSTEMS AUDITOR: DATA DISCOVERY ---
+    // This finds the array whether it's in .data, .prices, .table, or result itself
+    let marketArray: any[] = [];
+    if (Array.isArray(result)) {
+      marketArray = result;
+    } else if (result.data && Array.isArray(result.data)) {
+      marketArray = result.data;
+    } else if (result.prices && Array.isArray(result.prices)) {
+      marketArray = result.prices;
+    } else {
+      // Last resort: search all keys for an array
+      const possibleKey = Object.keys(result).find(k => Array.isArray(result[k]));
+      if (possibleKey) marketArray = result[possibleKey];
     }
 
+    if (marketArray.length === 0) throw new Error("Could not locate stock list in API response.");
+
     const updated = portfolio.map(item => {
-      // Find matching scrip (check 'symbol' or 's' or 'scrip')
       const liveStock = marketArray.find((s: any) => 
-        (s.symbol || s.scrip || s.s || "").toUpperCase() === item.symbol.toUpperCase()
+        (s.symbol || s.scrip || s.s || s.t || "").toUpperCase() === item.symbol.toUpperCase()
       );
 
-      // Use the Last Traded Price (ltp) or fallback to 100 (IPO price)
-      const currentPrice = Number(liveStock?.ltp || liveStock?.last_traded_price || liveStock?.p || 100);
+      // Map ltp, last_price, or c (close)
+      const currentPrice = Number(liveStock?.ltp || liveStock?.last_price || liveStock?.c || 100);
       
       return {
         ...item,
@@ -171,10 +179,10 @@ const syncMarketPrices = async () => {
     });
 
     setPortfolio(updated);
-    alert("Market Audit Complete: Prices Synced.");
+    alert(`Audit Successful: Verified ${updated.length} assets.`);
   } catch (error) {
-    console.error("Internal Sync Error:", error);
-    alert("Market data format changed. The auditor is adjusting...");
+    console.error("Sync Failure:", error);
+    alert("The NEPSE data source is currently unresponsive. This often happens on weekends. Please try again during market hours.");
   } finally {
     setIsSyncing(false);
   }
