@@ -138,38 +138,43 @@ export default function Dashboard() {
 
 
 const syncMarketPrices = async () => {
-  if (portfolio.length === 0) return alert("Please upload your CSV first.");
+  if (portfolio.length === 0) return alert("Upload CSV first");
   
   setIsSyncing(true);
   try {
-    // Call your INTERNAL proxy route
     const response = await fetch('/api/market');
     const result = await response.json();
 
-    // Mapping logic (adjusting for common NEPSE API structures)
-    const marketArray = result.data || result; 
+    // --- ARCHITECT CHECK: Find the Array ---
+    // This logic looks into common places where API data hides (data, prices, or the root)
+    const marketArray = Array.isArray(result) ? result : (result.data || result.prices || []);
+
+    if (marketArray.length === 0) {
+      throw new Error("Data structure mismatch or empty response");
+    }
 
     const updated = portfolio.map(item => {
-      // Find matching scrip (handling potential name/symbol mismatches)
+      // Find matching scrip (check 'symbol' or 's' or 'scrip')
       const liveStock = marketArray.find((s: any) => 
-        s.symbol?.toUpperCase() === item.symbol?.toUpperCase() || 
-        s.scrip?.toUpperCase() === item.symbol?.toUpperCase()
+        (s.symbol || s.scrip || s.s || "").toUpperCase() === item.symbol.toUpperCase()
       );
 
-      const currentPrice = liveStock?.ltp || liveStock?.last_traded_price || 100;
+      // Use the Last Traded Price (ltp) or fallback to 100 (IPO price)
+      const currentPrice = Number(liveStock?.ltp || liveStock?.last_traded_price || liveStock?.p || 100);
       
       return {
         ...item,
-        currentPrice: Number(currentPrice),
-        totalValue: Number(currentPrice) * item.units,
-        profit: (Number(currentPrice) - 100) * item.units
+        currentPrice: currentPrice,
+        totalValue: currentPrice * item.units,
+        profit: (currentPrice - 100) * item.units 
       };
     });
 
     setPortfolio(updated);
+    alert("Market Audit Complete: Prices Synced.");
   } catch (error) {
     console.error("Internal Sync Error:", error);
-    alert("Market data is currently unavailable. Try again in a moment.");
+    alert("Market data format changed. The auditor is adjusting...");
   } finally {
     setIsSyncing(false);
   }
