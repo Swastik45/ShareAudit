@@ -1,103 +1,72 @@
 
-
 -----
 
 # Share Auditor NP 🇳🇵
 
-**An Institutional-Grade Portfolio Risk & Growth Engine**
+**An Institutional-Grade Portfolio Risk & Resiliency Engine**
 
 [](https://nextjs.org/)
 [](https://www.typescriptlang.org/)
-[](https://tremor.so)
+[](https://tailwindcss.com/)
 [](https://opensource.org/licenses/MIT)
 
-**Share Auditor NP** is a high-performance, client-side web application designed to audit MeroShare transaction histories. It transforms raw CSV data into a comprehensive risk-assessment dashboard, providing Nepalese retail investors with institutional-level insights into their diversification, growth trends, and sector exposure.
+**Share Auditor NP** is a high-performance web application designed to audit MeroShare transaction histories. It transforms raw CSV data into a sophisticated risk-assessment dashboard, utilizing a **self-healing data pipeline** to ensure Nepalese retail investors have constant access to market insights, even when primary data sources are unstable.
 
 -----
 
-## 🚀 Core Features
+## 🚀 Advanced Features
 
-### 1\. **Growth Engine & Trend Analysis**
+### 1\. **Dynamic Market Intelligence (New)**
 
-  * **Area Growth Visualization:** Tracks cumulative portfolio volume over time.
-  * **Yearly Growth Audit:** A "No-Hover" data panel providing exact closing balances and annual additions for every year of investment.
+  * **Self-Healing Scraper:** Built a robust data extraction engine using `Cheerio` that dynamically interrogates external HTML structures to locate "LTP" and "Symbol" indices, ensuring resilience against site layout changes.
+  * **Multi-Source Waterfall:** Implemented a priority-based data fetcher:
+    1.  **Primary:** Live Scraper (ShareSansar).
+    2.  **Secondary:** Community API Fallback.
+    3.  **Tertiary:** "Safe-Mode" Mock Data (Circuit Breaker).
 
-### 2\. **Structural Risk Intelligence**
+### 2\. **Structural Risk Audit**
 
-  * **Asset Concentration:** Automatically flags "Concentration Risk" if a single scrip occupies more than 25% of the total volume.
+  * **Asset Concentration:** Automatically flags "Concentration Risk" if a single scrip occupies a disproportionate slice of the total volume.
   * **Clutter Score:** Measures portfolio fragmentation by identifying "dust" holdings (scrips with \< 10 units).
   * **Industry Exposure:** Real-time sector mapping (Banking, Hydropower, Insurance, etc.) to detect sector-level dependency.
 
-### 3\. **Market-Sync Automation (New)**
+### 3\. **High-Fidelity Visualization**
 
-  * **Live Price Auditing:** Integrates with public NEPSE data sources via a custom server-side proxy to fetch real-time LTP (Last Traded Price).
-  * **Unrealized P/L Tracking:** Automatically calculates profit/loss by merging historical cost basis with live market valuations.
-  * **Audit Timestamps:** Features a "Last Synced" verification system to ensure data freshness.
-
-### 4\. **Privacy-First Architecture**
-
-  * **Zero-Footprint:** Personal financial data is processed entirely in the browser's RAM.
-  * **Server-Side Proxying:** API requests are routed through a secure internal `/api/market` endpoint to bypass CORS and mask external data fetching.
+  * **Growth Trajectory:** Interactive Area Charts tracking cumulative portfolio volume over time.
+  * **Institutional Ledger:** A refined, glassmorphism-inspired data table featuring live profit/loss indicators and color-coded trend bars.
 
 -----
 
-## 🛠️ Technical Stack
+## 🛠️ Technical Architecture
 
   * **Framework:** [Next.js 15](https://nextjs.org/) (App Router & Route Handlers)
-  * **Language:** [TypeScript](https://www.typescriptlang.org/) (Strict Type Safety)
-  * **UI Components:** [Tremor](https://www.tremor.so/) (Low-level financial dashboard components)
-  * **Styling:** [Tailwind CSS](https://tailwindcss.com/)
-  * **Data Handling:** Client-side CSV Stream Parsing + Server-side API Proxying.
+  * **Backend:** Node.js Serverless Functions for secure web scraping and CORS bypassing.
+  * **State Management:** React Hooks (`useState`, `useEffect`) with **Hydration Guard** logic for SSR stability.
+  * **UI Components:** [Tremor](https://www.tremor.so/) & [Tailwind CSS](https://tailwindcss.com/).
+  * **Scraping Engine:** `Cheerio` for semantic HTML parsing.
 
 -----
 
-## 📂 Project Structure
+## 📂 System Map
 
 ```text
 ├── app/
-│   ├── api/market/route.ts  # Server-side Proxy to bypass CORS for NEPSE data
-│   └── page.tsx             # Main Dashboard, Live Sync Logic & UI
+│   ├── api/market/route.ts  # Self-healing scraper & Circuit Breaker logic
+│   └── page.tsx             # Dashboard UI, Sync state & Hydration guards
 ├── lib/
-│   ├── parser.ts            # CSV parsing and data normalization
+│   ├── parser.ts            # CSV normalization logic
 │   └── sectors.ts           # NEPSE Scrip-to-Sector mapping engine
-├── public/                  # Static assets
-└── tailwind.config.ts       # Custom branding and Tremor integration
+├── tailwind.config.ts       # Custom branding & financial UI configuration
+└── public/                  # Static assets & Audit icons
 ```
 
 -----
 
-## 📦 Installation & Setup
+## 🛡️ Auditor's Philosophy
 
-1.  **Clone the repository:**
-
-    ```bash
-    git clone https://github.com/Swastik45/share-auditor-np.git
-    cd share-auditor-np
-    ```
-
-2.  **Install dependencies:**
-
-    ```bash
-    npm install
-    ```
-
-3.  **Run the development server:**
-
-    ```bash
-    npm run dev
-    ```
-
-4.  **Perform an Audit:**
-    Upload your **Transaction History** CSV from MeroShare and click **"Sync Live Analysis"** (Available during market hours: Mon-Fri, 11 AM - 3 PM).
-
------
-
-## 🛡️ Auditor Protocol Note
-
-> This project is developed as part of a **BCA (Bachelor of Computer Applications)** portfolio. It prioritizes **Logical Verification** and **Systems Auditing** over social narratives. The goal is to provide a "Systems Architect" view of financial health.
+> This project is a **BCA (Bachelor of Computer Applications)** portfolio piece. It prioritizes **Systems Auditing** and **Fail-Safe Architecture** over simple data display. The goal is to demonstrate how software can maintain utility through "Safe-Mode" degradation even during external system failures.
 
 **Developed by:** [Swastik Paudel](https://www.google.com/search?q=https://github.com/Swastik45)  
 **Location:** Pokhara, Nepal 🇳🇵  
 **License:** MIT
 
------
