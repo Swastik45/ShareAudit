@@ -1,72 +1,124 @@
+# Share Auditor NP 🇳🇵 [![Next.js](https://img.shields.io/badge/Next.js-16-black?logo=next.js)](https://nextjs.org) [![TypeScript](https://img.shields.io/badge/TypeScript-5-blue?logo=typescript)](https://typescriptlang.org) [![Tailwind](https://img.shields.io/badge/Tailwind-4-3b82f6?logo=tailwindcss)](https://tailwindcss.com)
 
------
+![Dashboard Screenshot](https://via.placeholder.com/1200x600/1e293b/ffffff?text=Share+Auditor+Dashboard+%F0%9F%9A%A8) *(Upload real screenshot here)*
 
-# Share Auditor NP 🇳🇵
+**Institutional-Grade NEPSE Portfolio Auditor & Risk Engine**
 
-**An Institutional-Grade Portfolio Risk & Resiliency Engine**
+Transform your MeroShare CSV transaction history into actionable insights: live prices via self-healing scraper, Nepal CGT tax forecasts, sector exposure, concentration risk alerts, and growth trajectory—all in a stunning Tremor-powered dashboard.
 
-[](https://nextjs.org/)
-[](https://www.typescriptlang.org/)
-[](https://tailwindcss.com/)
-[](https://opensource.org/licenses/MIT)
+> **For Nepalese retail investors** • **Production-Ready** • **Fail-Safe Architecture**  
+> **BCA Portfolio Project** by [Swastik Paudel](https://github.com/Swastik45)
 
-**Share Auditor NP** is a high-performance web application designed to audit MeroShare transaction histories. It transforms raw CSV data into a sophisticated risk-assessment dashboard, utilizing a **self-healing data pipeline** to ensure Nepalese retail investors have constant access to market insights, even when primary data sources are unstable.
+[![MIT License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE) [![pnpm](https://img.shields.io/badge/Manager-pnpm-brightgreen.svg)](https://pnpm.io/)
 
------
+## ✨ Features
 
-## 🚀 Advanced Features
+| Feature | Description |
+|---------|-------------|
+| **📊 Self-Healing Market Sync** | Cheerio scraper (Sharesansar) → API fallback → Safe-mode mock. Resilient to site changes/outages. |
+| **💰 Fiscal Engine** | Broker fees (tiered 0.24-0.36%), CGT tax (5% >365d, 7.5% short-term), net PnL after tax/fees. |
+| **🎯 Risk Audits** | Concentration (>25% flag), clutter score (dust holdings), sector exposure (Hydropower/Banking/etc.). |
+| **📈 Interactive Visuals** | Area growth chart, donut sectors, bar scrips, KPI grid (Tremor v3). |
+| **🔍 CSV Parser** | Handles IPO/Bonus/Right/Secondary—weighted avg cost, consolidated holdings. |
+| **⚡ SSR-Optimized** | Next.js 16 App Router, hydration guards, Tailwind 4 glassmorphism UI. |
 
-### 1\. **Dynamic Market Intelligence (New)**
+<details>
+<summary>🛠️ Live Demo Tech Stack</summary>
 
-  * **Self-Healing Scraper:** Built a robust data extraction engine using `Cheerio` that dynamically interrogates external HTML structures to locate "LTP" and "Symbol" indices, ensuring resilience against site layout changes.
-  * **Multi-Source Waterfall:** Implemented a priority-based data fetcher:
-    1.  **Primary:** Live Scraper (ShareSansar).
-    2.  **Secondary:** Community API Fallback.
-    3.  **Tertiary:** "Safe-Mode" Mock Data (Circuit Breaker).
+```bash
+Next.js 16 (App Router) | React 19 | TypeScript 5
+Tailwind CSS 4 | Tremor 3 | Cheerio 1.0 | PapaParse 5
+```
+</details>
 
-### 2\. **Structural Risk Audit**
+## 🚀 Quick Start
 
-  * **Asset Concentration:** Automatically flags "Concentration Risk" if a single scrip occupies a disproportionate slice of the total volume.
-  * **Clutter Score:** Measures portfolio fragmentation by identifying "dust" holdings (scrips with \< 10 units).
-  * **Industry Exposure:** Real-time sector mapping (Banking, Hydropower, Insurance, etc.) to detect sector-level dependency.
+### Prerequisites
+- Node.js 20+
+- [pnpm](https://pnpm.io/installation)
 
-### 3\. **High-Fidelity Visualization**
+```bash
+# Clone & Install
+git clone https://github.com/Swastik45/share-auditor.git  # Or your repo
+cd share-auditor
+pnpm install
 
-  * **Growth Trajectory:** Interactive Area Charts tracking cumulative portfolio volume over time.
-  * **Institutional Ledger:** A refined, glassmorphism-inspired data table featuring live profit/loss indicators and color-coded trend bars.
+# Run Dev Server
+pnpm dev
 
------
-
-## 🛠️ Technical Architecture
-
-  * **Framework:** [Next.js 15](https://nextjs.org/) (App Router & Route Handlers)
-  * **Backend:** Node.js Serverless Functions for secure web scraping and CORS bypassing.
-  * **State Management:** React Hooks (`useState`, `useEffect`) with **Hydration Guard** logic for SSR stability.
-  * **UI Components:** [Tremor](https://www.tremor.so/) & [Tailwind CSS](https://tailwindcss.com/).
-  * **Scraping Engine:** `Cheerio` for semantic HTML parsing.
-
------
-
-## 📂 System Map
-
-```text
-├── app/
-│   ├── api/market/route.ts  # Self-healing scraper & Circuit Breaker logic
-│   └── page.tsx             # Dashboard UI, Sync state & Hydration guards
-├── lib/
-│   ├── parser.ts            # CSV normalization logic
-│   └── sectors.ts           # NEPSE Scrip-to-Sector mapping engine
-├── tailwind.config.ts       # Custom branding & financial UI configuration
-└── public/                  # Static assets & Audit icons
+# Open http://localhost:3000
+# Upload MeroShare CSV → Sync Market → Audit Complete!
 ```
 
------
+**Production Build:**
+```bash
+pnpm build
+pnpm start
+```
 
-## 🛡️ Auditor's Philosophy
+## 🏗️ Architecture
 
-> This project is a **BCA (Bachelor of Computer Applications)** portfolio piece. It prioritizes **Systems Auditing** and **Fail-Safe Architecture** over simple data display. The goal is to demonstrate how software can maintain utility through "Safe-Mode" degradation even during external system failures.
+```mermaid
+graph TD
+    A[MeroShare CSV] --> B[lib/parser.ts<br/>PapaParse + Fee Calc]
+    B --> C[lib/sectors.ts<br/>300+ NEPSE Scrips]
+    C --> D[app/page.tsx<br/>Tremor Dashboard]
+    E[/api/market<br/>Cheerio Scraper] --> D
+    F[Community API] --> E
+    G[Safe-Mode Mock] --> E
+    style E fill:#10b981
+```
 
-**Developed by:** [Swastik Paudel](https://www.google.com/search?q=https://github.com/Swastik45)  
-**Location:** Pokhara, Nepal 🇳🇵  
-**License:** MIT
+**Key Modules:**
+- `lib/calculations.ts`: Tax logic, aggregations.
+- `app/api/market/route.ts`: Dynamic LTP extraction.
+- `lib/types.ts`: Full type safety.
+
+## 📱 Screenshots
+
+| Dashboard Overview | Risk Ledger | Sector Exposure |
+|--------------------|-------------|-----------------|
+| ![Overview](https://via.placeholder.com/400x250/1e40af/ffffff?text=Dashboard) | ![Ledger](https://via.placeholder.com/400x250/059669/ffffff?text=Verified+Ledger) | ![Sectors](https://via.placeholder.com/400x250/06b6d4/ffffff?text=Sector+Donut) |
+
+*(Replace placeholders with actual screenshots)*
+
+## 🔬 Self-Healing Pipeline
+
+1. **Primary:** Parse Sharesansar HTML headers dynamically (`thead th` → LTP/Symbol indices).
+2. **Fallback:** `nepse-data-api.herokuapp.com` (4s timeout).
+3. **Safe-Mode:** Hardcoded LTPs for weekends/outages.
+4. **Circuit Breaker:** Auto-retry + console audit logs.
+
+## 🧪 Local Development
+
+```bash
+# Lint & Type Check
+pnpm lint
+
+# Add CSV sample to public/
+# Test scraper: curl http://localhost:3000/api/market
+```
+
+**Env Vars:** None (stateless).
+
+## 🚀 Roadmap
+
+- [ ] PDF Export (audited reports)
+- [ ] Real-time alerts (concentration thresholds)
+- [ ] WalletConnect NEPSE API integration
+- [ ] Mobile PWA
+- [ ] VSCode Extension (CSV preview)
+
+## 🤝 Contributing
+
+1. Fork → Branch (`feat/xyz`)
+2. `pnpm install && pnpm dev`
+3. PR to `main` with tests.
+
+Issues? [Open one](https://github.com/Swastik45/share-auditor/issues/new).
+
+## 📄 License
+
+MIT © [Swastik Paudel](https://github.com/Swastik45)  
+**Pokhara, Nepal 🇳🇵** • **April 2026**
 

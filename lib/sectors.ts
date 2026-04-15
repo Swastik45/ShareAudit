@@ -1,67 +1,71 @@
 /**
- * sectors.ts
+ * lib/sectors.ts
  * Complete Sector Mapping for Share Auditor NP
- * Generated based on your MeroShare Transaction History
+ * Updated: April 2026 (Includes Mergers & 2026 IPOs)
  */
 
 export const SCRIP_SECTORS: Record<string, string> = {
-  // --- HYDROPOWER ---
-  SIPD: "Hydropower",
-  SOHL: "Hydropower",
-  UPPER: "Hydropower",
-  MCHL: "Hydropower",
-  TAMOR: "Hydropower",
-  PHCL: "Hydropower",
-  TVCL: "Hydropower",
-  TJVCL: "Hydropower",
-  SGHC: "Hydropower",
-  MBJC: "Hydropower",
-  GLH: "Hydropower",
+  // --- HYDROPOWER (High Volatility) ---
+  SIPD: "Hydropower", SOHL: "Hydropower", UPPER: "Hydropower", MCHL: "Hydropower",
+  TAMOR: "Hydropower", PHCL: "Hydropower", TVCL: "Hydropower", TJVCL: "Hydropower",
+  SGHC: "Hydropower", MBJC: "Hydropower", GLH: "Hydropower", NYADI: "Hydropower",
+  SGHL: "Hydropower", KHL: "Hydropower", SSHL: "Hydropower", KKHC: "Hydropower",
+  APPLO: "Hydropower", // 2026 New Entry
 
-  // --- LIFE INSURANCE ---
-  PMLI: "Life Insurance",
-  HLI: "Life Insurance",
-  SRLI: "Life Insurance",
-  ILI: "Life Insurance",
-  SJLIC: "Life Insurance",
-  ULI: "Life Insurance", // Merged into HLI
-  RLI: "Life Insurance", // Merged into SRLI
-  JLI: "Life Insurance", // Merged into SRLI
+  // --- LIFE INSURANCE (Consolidated) ---
+  PMLI: "Life Insurance", HLI: "Life Insurance", SRLI: "Life Insurance",
+  ILI: "Life Insurance", SJLIC: "Life Insurance", ULI: "Life Insurance", 
+  RLI: "Life Insurance", JLI: "Life Insurance", CLI: "Life Insurance",
 
-  // --- MICROFINANCE (LAGHUBITTA) ---
-  GILB: "Microfinance",
-  SMPDA: "Microfinance",
-  UNLB: "Microfinance",
-  GGBSL: "Microfinance",
-  SPARS: "Microfinance", // Merged into NICLBSL
-  NICLBSL: "Microfinance",
+  // --- NON-LIFE INSURANCE ---
+  NIL: "Non-Life Insurance", GICL: "Non-Life Insurance", HEIP: "Non-Life Insurance",
+  IGI: "Non-Life Insurance", SGIC: "Non-Life Insurance", PRVU: "Non-Life Insurance",
 
-  // --- FINANCE ---
-  PFL: "Finance",
+  // --- MICROFINANCE (Laghu Bittas) ---
+  GILB: "Microfinance", SMPDA: "Microfinance", UNLB: "Microfinance",
+  GGBSL: "Microfinance", SPARS: "Microfinance", NICLBSL: "Microfinance",
+  GBLBS: "Microfinance", NESDO: "Microfinance", JBLB: "Microfinance",
 
-  // --- INVESTMENT ---
-  NIFRA: "Investment",
+  // --- COMMERCIAL BANKS ---
+  NABIL: "Banking", NIMB: "Banking", GBIME: "Banking", NICA: "Banking",
+  ADBL: "Banking", SANIMA: "Banking", EBL: "Banking", SCB: "Banking",
 
-  // --- OTHERS (REINSURANCE & TRADING) ---
-  HRL: "Others",   // Himalayan Reinsurance
-  NRIC: "Others",  // Nepal Reinsurance
-  TTL: "Others",   // Trade Tower
+  // --- FINANCE & INVESTMENT ---
+  PFL: "Finance", GMFIL: "Finance", NIFRA: "Investment", HIDCL: "Investment",
+  CIT: "Investment",
+
+  // --- MANUFACTURING & TRADING (2026 Growth Sector) ---
+  SOPL: "Manufacturing", // Sopan Pharmaceuticals
+  HDL: "Manufacturing", SHIVM: "Manufacturing", TTL: "Trading",
+
+  // --- OTHERS ---
+  HRL: "Others", NRIC: "Others",
 };
 
 /**
  * Returns the official NEPSE sector for a given symbol.
- * Returns "Other" if the scrip is not yet mapped.
+ * Includes a fallback for symbols not yet in our primary registry.
  */
 export const getSector = (symbol: string): string => {
   if (!symbol) return "Unknown";
   const normalizedSymbol = symbol.toUpperCase().trim();
-  return SCRIP_SECTORS[normalizedSymbol] || "Other";
+  
+  // Logical Mapping: If it's a known symbol, return its sector
+  if (SCRIP_SECTORS[normalizedSymbol]) {
+    return SCRIP_SECTORS[normalizedSymbol];
+  }
+
+  // Auditor Intelligence: Heuristic Guessing for unmapped scrips
+  if (normalizedSymbol.endsWith('LBSL') || normalizedSymbol.endsWith('LB')) return "Microfinance";
+  if (normalizedSymbol.endsWith('HPC') || normalizedSymbol.endsWith('CL')) return "Hydropower";
+  if (normalizedSymbol.endsWith('L') && normalizedSymbol.length === 3) return "Banking";
+
+  return "Other/Diversified";
 };
 
 /**
- * Utility to get all available sectors for filter dropdowns
+ * Returns unique sorted sectors for UI selection/filtering
  */
 export const getAllSectors = (): string[] => {
-  const sectors = Object.values(SCRIP_SECTORS);
-  return Array.from(new Set(sectors)).sort();
+  return Array.from(new Set(Object.values(SCRIP_SECTORS))).sort();
 };
