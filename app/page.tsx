@@ -229,29 +229,28 @@ export default function Dashboard() {
     }
   };
 
-  return (
-    <main className="min-h-screen bg-[#F8FAFC] text-slate-900 pb-20 font-sans selection:bg-indigo-100">
-      {/* 1. ULTRA-MODERN HEADER */}
-      <div className="bg-white border-b border-slate-200 px-8 py-6 mb-8">
+return (
+    <main className="min-h-screen bg-[#FDFDFD] text-slate-900 pb-20 font-sans selection:bg-rose-100">
+      {/* 1. HIGH-CONTRAST SYSTEM HEADER */}
+      <div className="bg-white border-b-2 border-slate-100 px-8 py-6 mb-8">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
           <div className="flex items-center gap-4">
-            <div className="bg-indigo-600 p-3 rounded-2xl shadow-lg shadow-indigo-200">
+            <div className="bg-rose-600 p-3 rounded-2xl shadow-lg shadow-rose-200">
               <CpuChipIcon className="w-6 h-6 text-white" />
             </div>
             <div>
               <h1 className="text-2xl font-black text-slate-900 tracking-tight">
-                SHARE AUDITOR <span className="text-indigo-600 italic">NP</span>
+                SHARE AUDITOR <span className="text-rose-600">NP</span>
               </h1>
               <div className="flex items-center gap-2">
-                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">BCA Protocol v4.0</span>
+                <span className="text-[10px] font-bold text-emerald-600 uppercase tracking-widest">Protocol v4.0</span>
                 <div className="w-1 h-1 rounded-full bg-slate-300" />
-                <span className="text-[10px] font-bold text-indigo-500 uppercase">{auditMetrics?.totalUnits.toLocaleString() || 0} Units Verified</span>
+                <span className="text-[10px] font-bold text-slate-400 uppercase">Authenticated Session</span>
               </div>
             </div>
           </div>
 
           <div className="flex items-center gap-3">
-            {/* Subtle CSV Upload */}
             <div className="relative group">
               <input
                 type="file"
@@ -259,16 +258,16 @@ export default function Dashboard() {
                 onChange={handleUpload}
                 className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
               />
-              <button className="flex items-center gap-2 px-5 py-2.5 rounded-xl border border-slate-200 text-slate-600 text-xs font-bold hover:bg-slate-50 transition-all">
+              <button className="flex items-center gap-2 px-5 py-2.5 rounded-xl border-2 border-emerald-500/20 text-emerald-700 text-xs font-bold hover:bg-emerald-50 transition-all">
                 <DocumentArrowDownIcon className="w-4 h-4" />
-                {portfolio.length > 0 ? "Update Source" : "Import CSV"}
+                {portfolio.length > 0 ? "Replace Ledger" : "Upload CSV"}
               </button>
             </div>
 
             <button
               onClick={() => syncMarketPrices()}
               disabled={isSyncing || !hasMounted || portfolio.length === 0}
-              className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-slate-900 text-white text-xs font-bold hover:bg-indigo-600 disabled:bg-slate-200 disabled:text-slate-400 transition-all shadow-xl shadow-slate-200"
+              className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-slate-900 text-white text-xs font-bold hover:bg-rose-600 disabled:bg-slate-100 disabled:text-slate-300 transition-all shadow-xl shadow-slate-200"
             >
               {isSyncing ? (
                 <span className="flex items-center gap-2">
@@ -281,177 +280,110 @@ export default function Dashboard() {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-6 space-y-6">
+      <div className="max-w-7xl mx-auto px-6 space-y-8">
         {portfolio.length > 0 ? (
           <>
-            {/* 2. KPI GRID - CLEANER CARDS */}
+            {/* 2. KPI GRID - CLEAN BORDERS */}
             <Grid numItemsMd={2} numItemsLg={4} className="gap-6">
               {[
-                {
-                  label: "Realizable Wealth",
-                  value: currencyFormatter(auditMetrics?.realizableWealth || 0),
-                  color: "emerald",
-                  sub: "After Tax & Commissions"
-                },
-                {
-                  label: "Net Profit (Audited)",
-                  value: currencyFormatter(auditMetrics?.totalNetProfit || 0),
-                  color: auditMetrics?.totalNetProfit >= 0 ? "indigo" : "rose",
-                  sub: "Verified Gain"
-                },
-                {
-                  label: "Tax Liability",
-                  value: currencyFormatter(auditMetrics?.totalTaxLiability || 0),
-                  color: "amber",
-                  sub: "Pending CGT"
-                },
-                {
-                  label: "Portfolio Maturity",
-                  value: `${auditMetrics?.maturityScore.toFixed(1)}%`,
-                  color: "sky",
-                  sub: "Long-term Holdings"
-                }
+                { label: "Realizable Wealth", value: currencyFormatter(auditMetrics?.realizableWealth || 0), color: "emerald", sub: "Net Liquidity" },
+                { label: "Net Profit", value: currencyFormatter(auditMetrics?.totalNetProfit || 0), color: (auditMetrics?.totalNetProfit || 0) >= 0 ? "emerald" : "rose", sub: "Audited Returns" },
+                { label: "Tax Liability", value: currencyFormatter(auditMetrics?.totalTaxLiability || 0), color: "rose", sub: "Pending CGT" },
+                { label: "Portfolio Maturity", value: `${auditMetrics?.maturityScore.toFixed(1)}%`, color: "emerald", sub: "Holding Status" }
               ].map((kpi, i) => (
-                <Card key={i} className="bg-white border-none shadow-sm ring-1 ring-slate-200/60 p-5">
-                  <Text className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">{kpi.label}</Text>
-                  <Metric className={`text-${kpi.color}-600 font-black mt-1 text-2xl`}>{kpi.value}</Metric>
-                  <Text className="text-[9px] font-medium text-slate-400 mt-1">{kpi.sub}</Text>
+                <Card key={i} className={`bg-white border-b-4 border-${kpi.color}-500 shadow-sm p-5 rounded-xl`}>
+                  <Text className="text-[10px] font-bold text-slate-400 uppercase">{kpi.label}</Text>
+                  <Metric className={`text-slate-900 font-black mt-1 text-2xl`}>{kpi.value}</Metric>
+                  <div className="flex items-center gap-2 mt-2">
+                    <Badge color={kpi.color} size="xs" className="font-mono">{kpi.sub}</Badge>
+                  </div>
                 </Card>
               ))}
             </Grid>
 
-            {/* 3. MAIN ANALYSIS AREA */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              {/* Growth Chart */}
-              <Card className="lg:col-span-2 bg-white border-none shadow-sm ring-1 ring-slate-100 p-8 rounded-3xl">
-                <div className="flex justify-between items-start mb-8">
-                  <div>
-                    <Title className="text-slate-900 font-bold">Growth Trajectory</Title>
-                    <Text className="text-xs text-slate-400 italic">Historical unit accumulation audit</Text>
-                  </div>
-                  {lastSynced && (
-                    <Badge color="emerald" size="xs" className="bg-emerald-50 text-emerald-700 border-none font-mono">
-                      LIVE SYNC ACTIVE
-                    </Badge>
-                  )}
-                </div>
-                <AreaChart
-                  className="h-72"
-                  data={trendData}
-                  index="date"
-                  categories={["Portfolio Volume"]}
-                  colors={["indigo"]}
-                  showLegend={false}
+            {/* 3. CORE ANALYSIS */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+              <Card className="lg:col-span-2 bg-white border border-slate-100 p-8 rounded-3xl shadow-sm">
+                <Title className="text-slate-900 font-black">Performance Audit</Title>
+                <AreaChart 
+                  className="h-72 mt-8" 
+                  data={trendData} 
+                  index="date" 
+                  categories={["Portfolio Volume"]} 
+                  colors={["emerald"]} 
                   showAnimation={true}
+                  showGridLines={false}
                   curveType="monotone"
                 />
               </Card>
 
-              {/* Side Risk Profile */}
               <div className="space-y-6">
-                <Card className="bg-white border-none shadow-sm ring-1 ring-slate-100 p-6 rounded-3xl">
-                  <Title className="text-xs font-black text-slate-900 uppercase tracking-widest mb-6">Sector Exposure</Title>
-                  <DonutChart
-                    className="h-40"
-                    data={sectorData}
-                    category="value"
-                    index="name"
-                    colors={["indigo", "sky", "slate", "blue", "violet"]}
+                <Card className="bg-white border-l-4 border-rose-500 p-6 rounded-2xl shadow-sm">
+                  <Title className="text-xs font-black text-slate-900 uppercase mb-6">Asset Distribution</Title>
+                  <DonutChart 
+                    className="h-44" 
+                    data={sectorData} 
+                    category="value" 
+                    index="name" 
+                    colors={["emerald", "rose", "slate", "zinc", "stone"]} 
                   />
-                  <BarList data={sectorData.slice(0, 3)} color="indigo" className="mt-6" />
+                  <BarList data={sectorData.slice(0, 3)} color="emerald" className="mt-6" />
                 </Card>
 
-                <Card className="bg-indigo-600 text-white border-none p-6 rounded-3xl shadow-xl shadow-indigo-100 relative overflow-hidden">
-                  <div className="relative z-10">
-                    <Text className="text-indigo-200 text-[10px] font-bold uppercase tracking-widest">Audit Summary</Text>
-                    <Text className="mt-2 text-sm leading-relaxed font-medium">
-                      Your portfolio shows a heavy focus in <span className="font-bold underline">{auditMetrics?.topSector}</span>.
-                      Consider diversifying to lower your structural risk.
-                    </Text>
-                  </div>
-                  <div className="absolute -bottom-4 -right-4 text-indigo-500 opacity-20">
-                    <ShieldCheckIcon className="w-24 h-24" />
-                  </div>
-                </Card>
+                <div className="bg-emerald-600 p-6 rounded-2xl text-white shadow-lg shadow-emerald-100">
+                  <ShieldCheckIcon className="w-8 h-8 mb-3" />
+                  <Text className="text-emerald-100 text-xs font-bold uppercase">System Note</Text>
+                  <Text className="mt-1 font-medium text-sm leading-relaxed">
+                    Portfolio concentration in <span className="font-black underline">{auditMetrics?.topSector}</span> verified. Institutional risk parameters maintained.
+                  </Text>
+                </div>
               </div>
             </div>
 
-            {/* 4. REFINED AUDIT LEDGER - NO MORE GREEN/BLACK BLOCKS */}
-            <Card className="bg-white border-none shadow-xl shadow-slate-200/50 ring-1 ring-slate-100 rounded-3xl overflow-hidden">
+            {/* 4. DATA TABLE */}
+            <Card className="bg-white border border-slate-100 rounded-3xl overflow-hidden shadow-sm">
               <div className="px-8 py-6 border-b border-slate-50 flex flex-col md:flex-row justify-between items-center gap-4">
                 <div className="flex items-center gap-3">
-                  <div className="w-2 h-8 bg-indigo-600 rounded-full" />
-                  <Title className="text-xl font-bold text-slate-900">Verified Ledger</Title>
+                  <div className="w-1.5 h-6 bg-rose-600 rounded-full" />
+                  <Title className="text-lg font-bold text-slate-900">Verified Ledger</Title>
                 </div>
                 <TextInput
                   icon={MagnifyingGlassIcon}
-                  placeholder="Filter by Scrip..."
+                  placeholder="Filter scrip..."
                   className="max-w-xs border-none bg-slate-50 rounded-xl"
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
               </div>
-
               <Table>
-                <TableHead>
-                  <TableRow className="bg-slate-50/50">
-                    <TableHeaderCell className="text-[10px] font-black uppercase text-slate-400 px-8 py-4">Scrip Entity</TableHeaderCell>
-                    <TableHeaderCell className="text-[10px] font-black uppercase text-slate-400 px-8 py-4">Market Price</TableHeaderCell>
-                    <TableHeaderCell className="text-[10px] font-black uppercase text-slate-400 px-8 py-4">Tax Status</TableHeaderCell>
-                    <TableHeaderCell className="text-[10px] font-black uppercase text-slate-400 px-8 py-4">Net P/L Audit</TableHeaderCell>
-                    <TableHeaderCell className="text-[10px] font-black uppercase text-slate-400 px-8 py-4 text-right">Holding</TableHeaderCell>
+                <TableHead className="bg-slate-50">
+                  <TableRow>
+                    <TableHeaderCell className="text-slate-900 font-bold px-8 py-4">ENTITY</TableHeaderCell>
+                    <TableHeaderCell className="text-slate-900 font-bold">LTP</TableHeaderCell>
+                    <TableHeaderCell className="text-slate-900 font-bold">TAX STATUS</TableHeaderCell>
+                    <TableHeaderCell className="text-slate-900 font-bold">NET GAIN</TableHeaderCell>
+                    <TableHeaderCell className="text-right text-slate-900 font-bold px-8">VOLUME</TableHeaderCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
                   {filteredPortfolio.map((item, idx) => (
                     <TableRow key={idx} className="hover:bg-slate-50/50 transition-colors">
-                      {/* Scrip Entity */}
                       <TableCell className="px-8 py-5">
                         <Text className="font-black text-slate-900 text-base">{item.symbol}</Text>
-                        <Text className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">Verified Asset</Text>
+                        <Text className="text-[10px] font-bold text-slate-400 uppercase">Verified Asset</Text>
                       </TableCell>
-
-                      {/* Market Price */}
-                      <TableCell className="px-8 py-5">
-                        <div className="flex items-center gap-2">
-                          <Text className="font-mono font-bold text-slate-600">Rs.</Text>
-                          <Text className="font-mono font-black text-slate-900">{item.currentPrice?.toLocaleString() || "---"}</Text>
-                        </div>
+                      <TableCell className="font-mono font-bold text-slate-600">
+                        Rs. {item.currentPrice?.toLocaleString()}
                       </TableCell>
-
-                      {/* Tax Status Badge */}
-                      <TableCell className="px-8 py-5">
-                        <Badge
-                          color={item.taxStatus?.includes('Long') ? "emerald" : "amber"}
-                          size="xs"
-                          className="font-mono"
-                        >
-                          {item.taxStatus || "Pending Sync"}
+                      <TableCell>
+                        <Badge color={item.taxStatus?.includes('Long') ? "emerald" : "rose"} size="xs" className="font-mono">
+                          {item.taxStatus || "Pending"}
                         </Badge>
-                        {item.daysToMaturity > 0 && (
-                          <Text className="text-[9px] mt-1 text-amber-600 font-bold">
-                            {item.daysToMaturity} days to 5% tax
-                          </Text>
-                        )}
                       </TableCell>
-
-                      {/* Net P/L Audit */}
-                      <TableCell className="px-8 py-5">
-                        {item.netProfit !== undefined ? (
-                          <div className="flex flex-col">
-                            <span className={`text-xs font-black ${item.netProfit >= 0 ? 'text-emerald-600' : 'text-rose-500'}`}>
-                              {item.netProfit >= 0 ? '▲' : '▼'} Rs. {Math.abs(item.netProfit).toLocaleString()}
-                            </span>
-                            <Text className="text-[9px] font-bold text-slate-400 uppercase mt-0.5">Final Net (After Tax)</Text>
-                          </div>
-                        ) : (
-                          <Text className="text-[10px] font-bold text-slate-300 italic">Audit Required</Text>
-                        )}
+                      <TableCell className={item.netProfit >= 0 ? "text-emerald-600 font-bold" : "text-rose-600 font-bold"}>
+                        {item.netProfit >= 0 ? '▲' : '▼'} Rs. {Math.abs(item.netProfit || 0).toLocaleString()}
                       </TableCell>
-
-                      {/* Holding Units */}
-                      <TableCell className="px-8 py-5 text-right">
-                        <Text className="font-black text-slate-900">{item.units.toLocaleString()}</Text>
-                        <Text className="text-[10px] font-bold text-slate-400">UNITS</Text>
+                      <TableCell className="text-right px-8 font-black text-slate-900">
+                        {item.units.toLocaleString()}
                       </TableCell>
                     </TableRow>
                   ))}
@@ -460,21 +392,46 @@ export default function Dashboard() {
             </Card>
           </>
         ) : (
-          /* Empty State */
-          <div className="py-40 flex flex-col items-center justify-center bg-white border border-slate-100 shadow-sm rounded-[3rem]">
-            <div className="bg-indigo-50 p-10 rounded-[2rem] mb-6">
-              <DocumentArrowDownIcon className="w-12 h-12 text-indigo-600" />
+          /* EMPTY STATE */
+          <div className="py-40 flex flex-col items-center justify-center bg-white border-2 border-dashed border-slate-200 rounded-[3rem]">
+            <div className="bg-rose-50 p-8 rounded-full mb-6">
+              <DocumentArrowDownIcon className="w-10 h-10 text-rose-600" />
             </div>
-            <Title className="text-slate-900 font-bold text-2xl">Ledger Offline</Title>
-            <Text className="text-slate-400 mt-2 font-medium">Please provide a MeroShare CSV for system initialization.</Text>
+            <Title className="text-slate-900 font-black text-2xl">Ledger Offline</Title>
+            <Text className="text-slate-400 mt-2 font-medium">Awaiting MeroShare CSV for system initialization.</Text>
             <div className="mt-8 relative group">
               <input type="file" accept=".csv" onChange={handleUpload} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" />
-              <button className="bg-indigo-600 text-white font-bold px-10 py-3.5 rounded-2xl shadow-xl shadow-indigo-100 hover:scale-[1.02] transition-all">
+              <button className="bg-slate-900 text-white font-bold px-10 py-3.5 rounded-2xl shadow-xl shadow-slate-200 hover:bg-rose-600 transition-all">
                 Initialize Audit Protocol
               </button>
             </div>
           </div>
         )}
+
+        {/* 5. DEFAULT MANUAL - CLEAN GRID ACCENTS */}
+        <div className="mt-24 pt-12 border-t border-slate-100">
+          <div className="flex items-center justify-center gap-3 mb-12">
+            <div className="h-px w-12 bg-slate-200" />
+            <h2 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em]">System Documentation</h2>
+            <div className="h-px w-12 bg-slate-200" />
+          </div>
+          
+          <Grid numItemsMd={3} className="gap-12">
+            {[
+              { title: "01. INGESTION", color: "emerald", desc: "Automated parsing of MeroShare CSV files with scrip validation and WACC consolidation." },
+              { title: "02. AUDITING", color: "rose", desc: "Real-time market price synchronization with multi-source failover for structural integrity." },
+              { title: "03. TAXATION", color: "slate", desc: "Dual-bracket CGT calculation (5% / 7.5%) based on Nepal's current fiscal policy guidelines." }
+            ].map((step, i) => (
+              <div key={i} className="group">
+                <div className={`w-12 h-1 bg-${step.color}-500 mb-6 transition-all group-hover:w-full`} />
+                <Title className="text-sm font-black text-slate-900 tracking-tight">{step.title}</Title>
+                <Text className="text-xs leading-relaxed text-slate-500 mt-3 font-medium">
+                  {step.desc}
+                </Text>
+              </div>
+            ))}
+          </Grid>
+        </div>
       </div>
     </main>
   );
