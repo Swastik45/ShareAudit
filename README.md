@@ -1,6 +1,6 @@
 # Share Auditor NP 🇳🇵 [![Next.js](https://img.shields.io/badge/Next.js-16-black?logo=next.js)](https://nextjs.org) [![TypeScript](https://img.shields.io/badge/TypeScript-5-blue?logo=typescript)](https://typescriptlang.org) [![Tailwind](https://img.shields.io/badge/Tailwind-4-3b82f6?logo=tailwindcss)](https://tailwindcss.com)
 
-![Dashboard Screenshot](/share-auditor/public/dashboard.png) 
+![Dashboard Screenshot](https://github.com/Swastik45/ShareAudit/blob/main/public/dashboard.png) 
 
 **Institutional-Grade NEPSE Portfolio Auditor & Risk Engine**
 
