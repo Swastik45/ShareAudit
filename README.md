@@ -1,6 +1,6 @@
 # Share Auditor NP 🇳🇵 [![Next.js](https://img.shields.io/badge/Next.js-16-black?logo=next.js)](https://nextjs.org) [![TypeScript](https://img.shields.io/badge/TypeScript-5-blue?logo=typescript)](https://typescriptlang.org) [![Tailwind](https://img.shields.io/badge/Tailwind-4-3b82f6?logo=tailwindcss)](https://tailwindcss.com)
 
-![Dashboard Screenshot](https://via.placeholder.com/1200x600/1e293b/ffffff?text=Share+Auditor+Dashboard+%F0%9F%9A%A8) *(Upload real screenshot here)*
+![Dashboard Screenshot](/share-auditor/public/dashboard.png) 
 
 **Institutional-Grade NEPSE Portfolio Auditor & Risk Engine**
 
@@ -56,31 +56,12 @@ pnpm build
 pnpm start
 ```
 
-## 🏗️ Architecture
-
-```mermaid
-graph TD
-    A[MeroShare CSV] --> B[lib/parser.ts<br/>PapaParse + Fee Calc]
-    B --> C[lib/sectors.ts<br/>300+ NEPSE Scrips]
-    C --> D[app/page.tsx<br/>Tremor Dashboard]
-    E[/api/market<br/>Cheerio Scraper] --> D
-    F[Community API] --> E
-    G[Safe-Mode Mock] --> E
-    style E fill:#10b981
-```
 
 **Key Modules:**
 - `lib/calculations.ts`: Tax logic, aggregations.
 - `app/api/market/route.ts`: Dynamic LTP extraction.
 - `lib/types.ts`: Full type safety.
 
-## 📱 Screenshots
-
-| Dashboard Overview | Risk Ledger | Sector Exposure |
-|--------------------|-------------|-----------------|
-| ![Overview](https://via.placeholder.com/400x250/1e40af/ffffff?text=Dashboard) | ![Ledger](https://via.placeholder.com/400x250/059669/ffffff?text=Verified+Ledger) | ![Sectors](https://via.placeholder.com/400x250/06b6d4/ffffff?text=Sector+Donut) |
-
-*(Replace placeholders with actual screenshots)*
 
 ## 🔬 Self-Healing Pipeline
 
