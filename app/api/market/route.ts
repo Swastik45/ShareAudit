@@ -5,89 +5,69 @@ export const dynamic = 'force-dynamic';
 
 export async function GET() {
   try {
-    // --- STAGE 1: SCRAPE SHARESANSAR (Primary Source) ---
-    const response = await fetch('https://www.sharesansar.com/today-share-price', {
-      next: { revalidate: 300 }, // 5-minute cache for efficiency
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
-      }
+    // --- SOURCE 1: SHARESANSAR (Primary) ---
+    const ssRes = await fetch('https://www.sharesansar.com/today-share-price', {
+      headers: { 'User-Agent': 'Mozilla/5.0' },
+      next: { revalidate: 60 } 
     });
 
-    if (response.ok) {
-      const html = await response.text();
+    if (ssRes.ok) {
+      const html = await ssRes.text();
       const $ = cheerio.load(html);
-      
-      let symbolIdx = -1;
-      let ltpIdx = -1;
-
-      // Dynamic Header Mapping
-      $('thead tr th').each((i, el) => {
-        const text = $(el).text().toLowerCase().trim();
-        if (text === 'symbol') symbolIdx = i;
-        if (text.includes('ltp') || text.includes('close')) ltpIdx = i;
-      });
-
       const scrapedData: any[] = [];
-      if (symbolIdx !== -1 && ltpIdx !== -1) {
-        $('tbody tr').each((_, row) => {
-          const cols = $(row).find('td');
-          const symbol = $(cols[symbolIdx]).text().trim().toUpperCase();
-          const ltpStr = $(cols[ltpIdx]).text().trim().replace(/,/g, '');
-          const ltp = parseFloat(ltpStr);
-          
-          if (symbol && !isNaN(ltp)) {
+
+      // Improved Selector: Target the table directly by its ID if possible
+      // Sharesansar often uses #headertbl or similar
+      $('table tr').each((_, row) => {
+        const cols = $(row).find('td');
+        if (cols.length > 5) {
+          // Manual fallback: Usually, Symbol is 2nd col, LTP is 7th
+          const symbol = $(cols[1]).text().trim().toUpperCase();
+          const ltp = parseFloat($(cols[6]).text().trim().replace(/,/g, ''));
+
+          if (symbol && symbol.length <= 6 && !isNaN(ltp)) {
             scrapedData.push({ symbol, ltp });
           }
-        });
-      }
+        }
+      });
 
       if (scrapedData.length > 0) {
-        return NextResponse.json({ 
-          source: "Live Scraper (Sharesansar)", 
-          data: scrapedData,
-          timestamp: new Date().toISOString()
-        });
+        return NextResponse.json({ source: "Sharesansar", data: scrapedData });
       }
     }
 
-    // --- STAGE 2: FALLBACK TO EXTERNAL API (Community API) ---
-    // Using a 4-second timeout to prevent the UI from hanging
-    const apiRes = await fetch('https://nepse-data-api.herokuapp.com/api/v1/market/today', { 
-        signal: AbortSignal.timeout(4000) 
+    // --- SOURCE 2: NEPSE ALPHA (New Free Fallback) ---
+    // This replaces the dead Heroku link
+    const alphaRes = await fetch('https://nepsealpha.com/trading-menu/today-price', {
+        headers: { 'User-Agent': 'Mozilla/5.0' }
     });
-    
-    if (apiRes.ok) {
-        const apiData = await apiRes.json();
-        // Standardize structure to {symbol, ltp}
-        const formattedApiData = apiData.map((item: any) => ({
-            symbol: (item.symbol || item.scrip || "").toUpperCase(),
-            ltp: parseFloat(item.ltp || item.lastPrice || 0)
-        }));
 
-        return NextResponse.json({ 
-            source: "Community API Fallback", 
-            data: formattedApiData 
+    if (alphaRes.ok) {
+        const html = await alphaRes.text();
+        const $ = cheerio.load(html);
+        const alphaData: any[] = [];
+
+        $('.table tr').each((_, row) => {
+            const cols = $(row).find('td');
+            const symbol = $(cols[1]).text().trim().toUpperCase();
+            const ltp = parseFloat($(cols[2]).text().trim().replace(/,/g, ''));
+            if (symbol && !isNaN(ltp)) alphaData.push({ symbol, ltp });
         });
+
+        if (alphaData.length > 0) return NextResponse.json({ source: "NepseAlpha", data: alphaData });
     }
 
-    throw new Error("All live audit sources exhausted.");
+    throw new Error("Scrapers Blocked or Market Offline");
 
   } catch (error: any) {
-    console.error("Critical Audit Failure:", error.message);
-    
-    // --- STAGE 3: HARD-CODED "AUDIT SAFE-MODE" (Mock Data) ---
-    // Essential for development and when NEPSE is closed
+    // --- STAGE 3: THE VAULT (Last Resort) ---
     return NextResponse.json({ 
-      error: "Live Sync Offline",
       isMock: true, 
-      source: "Internal Vault",
+      source: "Offline Vault",
       data: [
-        { symbol: "HRL", ltp: 620 }, 
-        { symbol: "NIFRA", ltp: 245 },
-        { symbol: "NABIL", ltp: 490 },
-        { symbol: "UPPER", ltp: 315 },
-        { symbol: "SGHC", ltp: 420 },
-        { symbol: "HIDCL", ltp: 215 }
+        { symbol: "HRL", ltp: 713 }, 
+        { symbol: "SOHL", ltp: 810 },
+        { symbol: "PMLI", ltp: 480 }
       ] 
     });
   }
